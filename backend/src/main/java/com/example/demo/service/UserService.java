@@ -1,57 +1,39 @@
 // src/main/java/com/example/demo/service/UserService.java
-
 package com.example.demo.service;
 
 import com.example.demo.entity.User;
 import com.example.demo.repository.UserRepository;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.core.userdetails.*;
 import org.springframework.stereotype.Service;
 
-import java.util.Collection;
-import java.util.Collections;
+import java.util.List;
 
-/**
- * This service implements UserDetailsService, a core Spring Security interface.
- * It's responsible for loading user-specific data from the database during authentication.
- * We use the UserRepository to fetch the user by username and convert it to UserDetails.
- */
 @Service
 public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
+    public UserService(UserRepository userRepository) { this.userRepository = userRepository; }
 
-    // Constructor injection for the repository
-    public UserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
-
-    /**
-     * Loads the user by username (called by Spring Security during login).
-     * Throws UsernameNotFoundException if the user doesn't exist.
-     * Maps the User's role to a GrantedAuthority (e.g., "ROLE_USER").
-     * Uses Spring Security's User builder to create UserDetails.
-     */
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        // Fetch the user from the DB
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
+        User u = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
 
-        // Convert role to authorities (prefix with "ROLE_" as per Spring Security convention)
-        Collection<GrantedAuthority> authorities = Collections.singletonList(
-                new SimpleGrantedAuthority("ROLE_" + user.getRole())
-        );
+        // Use DB role as-is if already prefixed, otherwise prefix it once
+        String role = u.getRole() == null ? "" : u.getRole().trim();
+        if (!role.startsWith("ROLE_") && !role.isBlank()) role = "ROLE_" + role;
 
-        // Build and return UserDetails
-        return new org.springframework.security.core.userdetails.User(
-                user.getUsername(),
-                user.getPassword(),
-                authorities  // Enabled, non-expired, etc., defaults to true
-        );
+        return org.springframework.security.core.userdetails.User
+                .withUsername(u.getUsername())
+                .password(u.getPassword())                  // e.g. {bcrypt}$2a$...
+                .authorities(role.isBlank()
+                        ? List.of()                          // will cause 401 via failureHandler
+                        : List.of(new SimpleGrantedAuthority(role)))
+                .accountExpired(false)
+                .accountLocked(false)
+                .credentialsExpired(false)
+                .disabled(false)
+                .build();
     }
-
 }
