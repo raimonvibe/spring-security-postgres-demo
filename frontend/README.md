@@ -1,90 +1,229 @@
-# Simple Next.js Frontend for Spring Security Postgres Auth Demo
+# Next.js Frontend — Spring Security + Postgres Demo
 
-🚀 **Welcome to the Next.js Frontend Demo!**  
-This is a basic Next.js application that serves as a frontend for the Spring Boot backend with Spring Security and PostgreSQL authentication. It includes a login page to authenticate users and a protected home page that fetches data from the backend's secured endpoint (/home). We'll use React hooks for state management, fetch API for HTTP requests, and handle session-based authentication (cookies managed by the browser after login).  
+A small **Next.js (App Router)** frontend that talks to a Spring Boot backend secured with Spring Security and PostgreSQL. It does classic **session (cookie) auth**:
 
-The frontend assumes the backend is running on http://localhost:8080. It demonstrates:  
-- Form-based login that submits to the backend's /login endpoint.  
-- Accessing a protected API endpoint after successful authentication.  
-- Logout functionality by calling the backend's /logout.  
-- Simple error handling for failed logins.  
+* Login form posts **`application/x-www-form-urlencoded`** to `POST /perform_login`
+* Backend returns **200** on success (our custom success handler) or **401** on failure
+* Frontend keeps the **JSESSIONID** cookie (`credentials: 'include'`)
+* Protected home page fetches `GET /me` and shows **Logout** (POST `/perform_logout`)
 
-🔒 **Key Concepts Explained (Next.js and Frontend Auth Basics):**  
-Next.js is a React framework for server-side rendering, static sites, and API routes. Here's a quick breakdown for this context:  
-- **Pages**: Next.js uses file-based routing (e.g., pages/login.js becomes /login).  
-- **API Calls**: Use `fetch` to interact with the backend (POST for login, GET for protected resources).  
-- **Authentication**: Since the backend uses session cookies (set after successful login), the browser handles auth for subsequent requests—no need for JWT storage in frontend.  
-- **State Management**: Basic use of React's `useState` and `useEffect` for login status and data fetching.  
-- **Routing**: Use Next.js `useRouter` for navigation after login/logout.  
-- **CSRF**: If enabled in backend, you'd need to handle CSRF tokens; but since we disabled it in the demo backend, it's skipped here.  
+> Default backend base URL: **[http://localhost:8080](http://localhost:8080)** (override with `NEXT_PUBLIC_API_BASE`).
 
-This frontend uses **Next.js 14+** (with App Router), Node.js 18+, and assumes you have the backend running.  
+---
 
-📊 **Project File Structure Drawing** (ASCII Art Tree):  
-Here's a visual representation of the frontend project's directory structure. Imagine this as your root folder named `spring-security-frontend-demo`.  
+## 1) Requirements
 
-```
-spring-security-frontend-demo/
-├── package.json             📄 (Dependencies and scripts)
-├── next.config.mjs          ⚙️ (Next.js configuration, if needed)
-├── src/
-│   ├── app/
-│   │   ├── globals.css      🎨 (Global styles)
-│   │   ├── layout.js        🏗️ (Root layout component)
-│   │   ├── page.js          🏠 (Home page - protected)
-│   │   └── login/
-│   │       └── page.js      🔑 (Login page)
-├── public/                  📂 (Static assets, if any)
-└── README.md                📖 (This file you're reading!)
+* **Node.js 18+**
+* **npm** or **yarn**
+* Spring Boot backend from this repo running on **:8080** with CORS enabled for `http://localhost:3000`
+
+---
+
+## 2) Create the app
+
+```bash
+# create a fresh Next.js app (App Router)
+npx create-next-app@latest frontend --use-npm --no-eslint --no-src-dir --app
+
+cd frontend
 ```
 
-That's minimal—focuses on login and protected page. No extra libraries like Redux or Axios (uses built-in fetch).  
+> If you already have the provided `frontend/` folder, just `cd` into it and continue.
 
-🛠️ **Step-by-Step Instructions: How to Create and Run This Frontend**  
+---
 
-1. **Prerequisites** (Get These Ready First):  
-   - Node.js 18+ installed (download from nodejs.org).  
-   - Yarn or npm (comes with Node.js).  
-   - The backend project running: Clone https://github.com/raimonvibe/spring-security-postgres-demo, follow its README to start it on http://localhost:8080.  
-   - An IDE like VS Code (recommended).  
+## 3) Install Tailwind CSS
 
-2. **Set Up the Project Directory**:  
-   - Create a new folder: `mkdir spring-security-frontend-demo && cd spring-security-frontend-demo`.  
-   - Initialize Next.js: Run `npx create-next-app@latest .` (use defaults: Yes to TypeScript? No; App Router? Yes; Tailwind? Optional but say Yes for simple styling).  
-   - Clean up: Remove unnecessary files like /app/api (we don't need API routes here).  
+```bash
+# from ./frontend
+npm install -D tailwindcss postcss autoprefixer
+npx tailwindcss init -p
+```
 
-3. **Add Dependencies to package.json**:  
-   - No extra deps needed beyond create-next-app defaults. If using Tailwind, it's already included.  
-   - Install if needed: `npm install` or `yarn`.  
+Edit **`tailwind.config.js`** so Tailwind scans your App Router files:
 
-4. **Create the Files**:  
-   - Set up global styles in globals.css (basic resets).  
-   - Root layout in layout.js (wraps all pages).  
-   - Login page (login/page.js): Form to submit username/password to backend /login.  
-   - Home page (page.js): Fetches from backend /home if authenticated, shows logout button.  
-   - Add inline comments explaining each part, especially auth handling.  
+```js
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: [
+    "./src/app/**/*.{js,ts,jsx,tsx}",
+    "./src/components/**/*.{js,ts,jsx,tsx}",
+    "./src/pages/**/*.{js,ts,jsx,tsx}" // keep in case you add Pages dir
+  ],
+  theme: { extend: {} },
+  plugins: [],
+}
+```
 
-5. **Handle Authentication Flow**:  
-   - On login: POST to http://localhost:8080/login with form data. If success (302 redirect or check status), navigate to /.  
-   - On home: GET to http://localhost:8080/home; if 401/403, redirect to /login.  
-   - Logout: POST to http://localhost:8080/logout, then redirect to /login.  
+Create/ensure **`src/app/globals.css`** includes Tailwind layers at the top:
 
-6. **Build and Run**:  
-   - Dev mode: `npm run dev` or `yarn dev` (runs on http://localhost:3000).  
-   - Access: Open http://localhost:3000/login to start.  
-   - Test: Use backend sample creds (user/user or admin/admin). After login, see welcome message from backend.  
+```css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+```
 
-7. **Testing the Frontend**:  
-   - Visit /login, enter creds → Redirect to / with protected content.  
-   - Direct access to / without login → Should show loading or redirect (handled via fetch error).  
-   - Logout → Back to /login.  
+> You can paste your custom theme/glass styles **below** those lines.
 
-⚠️ **Security Notes**:  
-- In production, use HTTPS and same-site cookies.  
-- Proxy API calls via Next.js API routes for CORS if needed (backend might need CORS config).  
-- This is basic—add token-based auth (JWT) for more advanced setups.  
-- Demo only; secure properly for real apps.  
+---
 
-🎉 **Next Steps**: In the following responses, I'll provide the full code for each file, starting with package.json, then layout.js, and so on. Let me know when you're ready for the next part! If you have questions, ask.  
+## 4) Configure environment
 
-Made with ❤️ by Grok. Happy coding! 🚀
+Create **`.env.local`** (Next.js reads it automatically):
+
+```
+NEXT_PUBLIC_API_BASE=http://localhost:8080
+```
+
+If you omit this, the app falls back to `http://localhost:8080`.
+
+---
+
+## 5) Project structure (minimal)
+
+```
+frontend/
+├─ src/
+│  └─ app/
+│     ├─ globals.css            # Tailwind + your custom styles
+│     ├─ layout.js              # Root layout
+│     ├─ login/
+│     │  └─ page.js             # Login form (POST /perform_login)
+│     └─ page.js                # Protected home (GET /me, POST /perform_logout)
+├─ package.json
+├─ postcss.config.js
+└─ tailwind.config.js
+```
+
+---
+
+## 6) How the auth works (frontend)
+
+### Login (in `src/app/login/page.js`)
+
+```js
+const body = new URLSearchParams();
+body.set('username', username.trim());
+body.set('password', password);
+
+const res = await fetch(`${API_BASE}/perform_login`, {
+  method: 'POST',
+  body,
+  headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+  credentials: 'include',   // keep JSESSIONID
+  mode: 'cors',
+  redirect: 'manual'
+});
+
+if (res.status === 200) router.push('/');
+else if (res.status === 401) setError('Invalid credentials');
+else setError(`Login failed (status ${res.status})`);
+```
+
+### Get current user (in `src/app/page.js`)
+
+```js
+const res = await fetch(`${API_BASE}/me`, { credentials: 'include' });
+const me = await res.json(); // { authenticated: true/false, username: "user" }
+```
+
+### Logout (button on home page)
+
+```js
+await fetch(`${API_BASE}/perform_logout`, {
+  method: 'POST',
+  credentials: 'include'
+});
+router.push('/login');
+```
+
+---
+
+## 7) Run it
+
+```bash
+# from ./frontend
+npm run dev
+# open http://localhost:3000/login
+```
+
+Use the backend users (e.g., `admin/admin` or `user/user`) that you inserted with **BCrypt** (stored as `{bcrypt}$2a$...`), or temporarily `{noop}` passwords for quick testing.
+
+---
+
+## 8) Backend expectations (for this frontend)
+
+Your Spring Security should roughly look like:
+
+* `formLogin().loginProcessingUrl("/perform_login")`
+* `successHandler((req,res,auth) -> res.setStatus(200))`
+* `failureHandler((req,res,ex) -> res.sendError(401, "Bad credentials"))`
+* `exceptionHandling().authenticationEntryPoint((req,res,ex) -> res.sendError(401))`
+* `logout().logoutUrl("/perform_logout")`
+* CORS allows origin `http://localhost:3000`, `allowCredentials=true`
+* Password encoder is **Delegating** (`PasswordEncoderFactories.createDelegatingPasswordEncoder()`)
+
+Also expose:
+
+```java
+@GetMapping("/me")
+public Map<String,Object> me(Principal p) {
+  return Map.of("authenticated", p != null, "username", p != null ? p.getName() : null);
+}
+```
+
+---
+
+## 9) Troubleshooting
+
+* **401 on login**
+
+  * Wrong credentials or password hash mismatch
+  * Ensure DB passwords are `{bcrypt}$2a$...` if using Delegating encoder
+  * Roles should be `ROLE_USER` / `ROLE_ADMIN`
+
+* **500 on login**
+
+  * Usually missing `{bcrypt}` prefix, empty authorities, or missing entity/repo
+  * Check backend logs; enable:
+
+    ```
+    logging.level.org.springframework.security=DEBUG
+    logging.level.org.hibernate.SQL=DEBUG
+    ```
+
+* **ERR\_TOO\_MANY\_REDIRECTS**
+
+  * Don’t use `loginPage("/login")` for SPA unless you actually serve an HTML page
+  * Use the success/failure handlers to return **200/401** instead of redirects
+  * Frontend uses `redirect: 'manual'`
+
+* **CORS issues**
+
+  * Backend CORS must allow origin `http://localhost:3000`, methods `GET,POST,PUT,DELETE,OPTIONS`, headers like `Content-Type`, and `allowCredentials=true`
+  * Frontend must send `credentials: 'include'`
+
+---
+
+## 10) Scripts you’ll use most
+
+```bash
+# Dev server
+npm run dev
+
+# Lint/Build (if you enabled them)
+npm run build
+npm run start
+```
+
+---
+
+## 11) Optional styling tips
+
+* Keep your global theme tokens and “glass” classes in `globals.css`
+* Center the login card with: `min-h-screen flex items-center justify-center`
+* Add a small light/dark/system toggle by toggling the `dark` class on `document.documentElement`
+
+---
+
+That’s it! You now have a clean Next.js frontend wired to a Spring Security + Postgres backend using session cookies and Tailwind CSS. Happy building ✨
