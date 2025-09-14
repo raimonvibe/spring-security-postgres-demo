@@ -52,7 +52,7 @@ sudo systemctl enable postgresql
 ### 2. Configure Database
 ```bash
 # Set postgres user password to match application.properties
-sudo -u postgres psql -c "ALTER USER postgres PASSWORD '0000';"
+sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'your_password';"
 
 # Create the required database
 sudo -u postgres createdb auth_demo
