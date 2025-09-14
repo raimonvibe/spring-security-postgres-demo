@@ -119,12 +119,12 @@ net start postgresql-x64-14  # Service name may vary; check Services app for exa
 
 ### 2. Configure Database
 
-The application uses 'postgres' user with password '0000' and database 'auth_demo'. Adjust if your setup differs.
+The application uses 'postgres' user with password 'your_password' and database 'auth_demo'. Adjust if your setup differs.
 
 #### Ubuntu/Debian
 ```bash
 # Set postgres user password to match application.properties
-sudo -u postgres psql -c "ALTER USER postgres PASSWORD '0000';"
+sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'your_password';"
 
 # Create the required database
 sudo -u postgres createdb auth_demo
@@ -138,17 +138,17 @@ initdb /opt/homebrew/var/postgresql@14  # Only if needed
 
 # Create 'postgres' user if it doesn't exist and set password
 createuser postgres || true  # Ignore if exists
-psql -c "ALTER USER postgres PASSWORD '0000';"
+psql -c "ALTER USER postgres PASSWORD 'your_password';"
 
 # Create the required database
 createdb -U postgres auth_demo
 ```
 
 #### Windows
-During PostgreSQL installation, you set the 'postgres' user password. If not set to '0000', run:
+During PostgreSQL installation, you set the 'postgres' user password. If not set to 'your_password', run:
 ```powershell
 # Open psql (assuming it's in PATH; default install path is C:\Program Files\PostgreSQL\14\bin)
-psql -U postgres -c "ALTER USER postgres PASSWORD '0000';"
+psql -U postgres -c "ALTER USER postgres PASSWORD 'your_password';"
 
 # Create the required database
 createdb -U postgres auth_demo
@@ -159,7 +159,7 @@ Enter the current password when prompted if needed.
 
 #### All OS (adjust for user if needed)
 ```bash
-# Test connection (should connect without errors; enter password '0000' if prompted)
+# Test connection (should connect without errors; enter password 'your_password' if prompted)
 psql -U postgres -d auth_demo -c "SELECT version();"
 ```
 
