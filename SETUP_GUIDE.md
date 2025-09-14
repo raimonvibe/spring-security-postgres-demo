@@ -1,10 +1,10 @@
 # Spring Security PostgreSQL Demo - Complete Setup Guide
 
-This guide provides step-by-step instructions to successfully run the Spring Security PostgreSQL demo project.
+This guide provides step-by-step instructions to successfully run the Spring Security PostgreSQL demo project on Ubuntu/Debian, macOS, or Windows.
 
 ## 🚀 Quick Start
 
-1. **Install Prerequisites** (see detailed instructions below)
+1. **Install Prerequisites** (see detailed instructions below for your OS)
 2. **Setup Database** (PostgreSQL)
 3. **Run Backend** (Spring Boot on port 8080)
 4. **Run Frontend** (Next.js on port 3000)
@@ -19,9 +19,11 @@ Before running this project, ensure you have the following installed:
 - **Maven 3.8+** - Build tool for Java backend
 - **Node.js 18+** - Required for Next.js frontend
 - **PostgreSQL 14+** - Database server
-- **npm or yarn** - Package manager for frontend dependencies
+- **npm or yarn** - Package manager for frontend dependencies (npm comes with Node.js)
 
-### Installation Commands (Ubuntu/Debian)
+Install the prerequisites based on your operating system. Note: Administrative privileges may be required for installations.
+
+### Installation on Ubuntu/Debian
 
 ```bash
 # Update package list
@@ -41,30 +43,129 @@ sudo apt install -y nodejs
 sudo apt install -y postgresql postgresql-contrib
 ```
 
+### Installation on macOS
+
+We recommend using Homebrew as the package manager. If you don't have Homebrew installed, install it from https://brew.sh/.
+
+```bash
+# Install Java 17
+brew install openjdk@17
+
+# Install Maven
+brew install maven
+
+# Install Node.js 18
+brew install node@18
+
+# Install PostgreSQL 14
+brew install postgresql@14
+
+# Add to PATH if needed (Homebrew usually handles this, but verify)
+echo 'export PATH="/opt/homebrew/opt/openjdk@17/bin:$PATH"' >> ~/.zshrc  # Or ~/.bash_profile for Bash
+echo 'export PATH="/opt/homebrew/opt/node@18/bin:$PATH"' >> ~/.zshrc
+echo 'export PATH="/opt/homebrew/opt/postgresql@14/bin:$PATH"' >> ~/.zshrc
+source ~/.zshrc  # Reload shell
+```
+
+### Installation on Windows
+
+We recommend using Chocolatey as the package manager for easier installation. If you don't have Chocolatey, install it from https://chocolatey.org/install (run in an elevated PowerShell).
+
+```powershell
+# Run these in an elevated (Administrator) PowerShell
+
+# Install Java 17 (Adoptium OpenJDK)
+choco install temurin17 -y
+
+# Install Maven
+choco install maven -y
+
+# Install Node.js 18 (LTS version)
+choco install nodejs-lts -y  # This installs 18.x or higher LTS
+
+# Install PostgreSQL 14
+choco install postgresql14 -y
+```
+
+If you prefer manual installation without Chocolatey:
+- Download Java JDK 17 from https://adoptium.net/ and add to PATH.
+- Download Maven from https://maven.apache.org/download.cgi, extract, and add bin to PATH.
+- Download Node.js 18 from https://nodejs.org/en/download/ and install.
+- Download PostgreSQL 14 from https://www.postgresql.org/download/windows/ and install (during setup, set password for 'postgres' user to '0000' if prompted).
+
+After installation, restart your terminal/PowerShell or log out and back in to update PATH.
+
 ## 🗄️ Database Setup
 
 ### 1. Start PostgreSQL Service
+
+#### Ubuntu/Debian
 ```bash
 sudo systemctl start postgresql
 sudo systemctl enable postgresql
 ```
 
+#### macOS
+```bash
+brew services start postgresql@14
+```
+
+#### Windows
+The service starts automatically after installation. To start manually:
+```powershell
+# Run in elevated PowerShell
+net start postgresql-x64-14  # Service name may vary; check Services app for exact name (e.g., postgresql-x64-14)
+```
+
 ### 2. Configure Database
+
+The application uses 'postgres' user with password '0000' and database 'auth_demo'. Adjust if your setup differs.
+
+#### Ubuntu/Debian
 ```bash
 # Set postgres user password to match application.properties
-sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'your_password';"
+sudo -u postgres psql -c "ALTER USER postgres PASSWORD '0000';"
 
 # Create the required database
 sudo -u postgres createdb auth_demo
 ```
 
-### 3. Verify Database Setup
+#### macOS
+On macOS with Homebrew, PostgreSQL uses your user account by default, but we'll create/configure the 'postgres' user.
 ```bash
-# Test connection (should connect without errors)
-sudo -u postgres psql -d auth_demo -c "SELECT version();"
+# Initialize if not done (Homebrew usually does this)
+initdb /opt/homebrew/var/postgresql@14  # Only if needed
+
+# Create 'postgres' user if it doesn't exist and set password
+createuser postgres || true  # Ignore if exists
+psql -c "ALTER USER postgres PASSWORD '0000';"
+
+# Create the required database
+createdb -U postgres auth_demo
+```
+
+#### Windows
+During PostgreSQL installation, you set the 'postgres' user password. If not set to '0000', run:
+```powershell
+# Open psql (assuming it's in PATH; default install path is C:\Program Files\PostgreSQL\14\bin)
+psql -U postgres -c "ALTER USER postgres PASSWORD '0000';"
+
+# Create the required database
+createdb -U postgres auth_demo
+```
+Enter the current password when prompted if needed.
+
+### 3. Verify Database Setup
+
+#### All OS (adjust for user if needed)
+```bash
+# Test connection (should connect without errors; enter password '0000' if prompted)
+psql -U postgres -d auth_demo -c "SELECT version();"
 ```
 
 ## 🔧 Backend Setup (Spring Boot)
+
+These steps are the same across all OS.
 
 ### 1. Navigate to Backend Directory
 ```bash
@@ -91,6 +192,8 @@ Tomcat started on port 8080 (http) with context path '/'
 ```
 
 ## 🌐 Frontend Setup (Next.js)
+
+These steps are the same across all OS.
 
 ### 1. Open New Terminal and Navigate to Frontend Directory
 ```bash
@@ -139,36 +242,52 @@ curl http://localhost:8080/login
 **Problem**: PostgreSQL is not running or not configured correctly.
 
 **Solution**:
-```bash
-# Check PostgreSQL status
-sudo systemctl status postgresql
 
-# Start PostgreSQL if not running
-sudo systemctl start postgresql
+- **Ubuntu/Debian**:
+  ```bash
+  # Check PostgreSQL status
+  sudo systemctl status postgresql
 
-# Verify database exists
-sudo -u postgres psql -l | grep auth_demo
-```
+  # Start PostgreSQL if not running
+  sudo systemctl start postgresql
+
+  # Verify database exists
+  sudo -u postgres psql -l | grep auth_demo
+  ```
+
+- **macOS**:
+  ```bash
+  # Check PostgreSQL status
+  brew services list | grep postgresql
+
+  # Start PostgreSQL if not running
+  brew services start postgresql@14
+
+  # Verify database exists
+  psql -U postgres -l | grep auth_demo
+  ```
+
+- **Windows**:
+  ```powershell
+  # Check service status (adjust service name)
+  Get-Service postgresql-x64-14
+
+  # Start if not running
+  net start postgresql-x64-14
+
+  # Verify database exists
+  psql -U postgres -l | Select-String auth_demo
+  ```
 
 #### 2. "Maven command not found"
-**Problem**: Maven is not installed.
+**Problem**: Maven is not installed or not in PATH.
 
-**Solution**:
-```bash
-sudo apt install -y maven
-```
+**Solution**: Reinstall Maven as per your OS instructions above, and ensure it's added to PATH. Verify with `mvn -version`.
 
 #### 3. "Java version incompatibility"
 **Problem**: Wrong Java version installed.
 
-**Solution**:
-```bash
-# Check Java version (should be 17+)
-java -version
-
-# Install Java 17 if needed
-sudo apt install -y openjdk-17-jdk
-```
+**Solution**: Check with `java -version` (should be 17+). Reinstall as per your OS if needed.
 
 #### 4. Frontend fails to connect to backend
 **Problem**: Backend not running or CORS issues.
@@ -176,19 +295,30 @@ sudo apt install -y openjdk-17-jdk
 **Solution**:
 - Ensure backend is running on port 8080
 - Check that both frontend and backend are running simultaneously
-- Verify no firewall blocking localhost connections
+- Verify no firewall blocking localhost connections (e.g., on Windows, check Windows Defender Firewall)
 
 #### 5. "Port already in use"
 **Problem**: Another service is using port 8080 or 3000.
 
 **Solution**:
-```bash
-# Find process using port 8080
-sudo lsof -i :8080
 
-# Kill the process if needed
-sudo kill -9 <PID>
-```
+- **Ubuntu/Debian or macOS**:
+  ```bash
+  # Find process using port 8080
+  lsof -i :8080
+
+  # Kill the process if needed
+  kill -9 <PID>
+  ```
+
+- **Windows**:
+  ```powershell
+  # Find process using port 8080
+  netstat -ano | findstr :8080
+
+  # Kill the process if needed
+  taskkill /PID <PID> /F
+  ```
 
 ## 📁 Project Structure
 
