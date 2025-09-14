@@ -1,10 +1,128 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-/* Add any custom styles below */
-body {
-  margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  background-color: #f0f0f0;
+/* ---- Theme tokens ---- */
+:root {
+  --bg: 246 246 250;          /* #f6f6fa */
+  --fg: 17 24 39;             /* slate-900 */
+  --muted: 100 116 139;       /* slate-500 */
+  --card: 255 255 255 / 0.7;  /* glass */
+  --border: 15 23 42 / 0.08;  /* slate-900/8 */
+  --ring: 99 102 241;         /* indigo-500 */
+  --primary: 79 70 229;       /* indigo-600 */
+  --primary-fg: 255 255 255;  /* white */
+}
+
+.dark {
+  --bg: 3 6 23;               /* #030617 */
+  --fg: 226 232 240;          /* slate-200 */
+  --muted: 148 163 184;       /* slate-400 */
+  --card: 2 6 23 / 0.5;       /* glass dark */
+  --border: 148 163 184 / 0.12;
+  --ring: 129 140 248;        /* indigo-400 */
+  --primary: 165 180 252;     /* indigo-300 */
+  --primary-fg: 3 6 23;
+}
+
+/* ---- Base resets & polish ---- */
+@layer base {
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0;
+    @apply min-h-screen antialiased selection:bg-indigo-500/20 selection:text-indigo-700;
+    color: rgb(var(--fg));
+    background:
+      radial-gradient(1200px 600px at 10% -10%, rgba(99,102,241,0.08), transparent 50%),
+      radial-gradient(900px 500px at 90% 10%, rgba(59,130,246,0.08), transparent 50%),
+      radial-gradient(800px 400px at 50% 120%, rgba(236,72,153,0.08), transparent 50%),
+      rgb(var(--bg));
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Arial, "Apple Color Emoji","Segoe UI Emoji";
+  }
+
+  /* Better focus rings */
+  :focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(var(--ring), .35);
+    border-radius: .5rem;
+  }
+}
+
+/* ---- Components ---- */
+@layer components {
+  /* Glass card */
+  .glass {
+    background: rgba(var(--card));
+    @apply backdrop-blur-xl border rounded-2xl shadow-sm;
+    border-color: rgba(var(--border));
+  }
+
+  /* Buttons */
+  .btn {
+    @apply inline-flex items-center gap-2 rounded-xl px-4 py-2 font-medium transition active:scale-[.98];
+    border: 1px solid rgba(var(--border));
+  }
+  .btn-primary {
+    background: rgb(var(--primary));
+    color: rgb(var(--primary-fg));
+    @apply hover:opacity-90;
+  }
+  .btn-ghost {
+    background: transparent;
+    color: rgb(var(--fg));
+    @apply hover:bg-black/5 dark:hover:bg-white/5;
+  }
+
+  /* Container with safe max width */
+  .container-safe {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+
+  /* Soft card shadow */
+  .shadow-soft {
+    box-shadow:
+      0 10px 30px -15px rgba(2,6,23,0.25),
+      0 2px 6px -2px rgba(2,6,23,0.15);
+  }
+}
+
+/* ---- Utilities ---- */
+@layer utilities {
+  /* Animated subtle float (use with motion-safe) */
+  @keyframes floaty { 
+    0% { transform: translateY(0) }
+    50% { transform: translateY(-4px) }
+    100% { transform: translateY(0) }
+  }
+  .floaty { animation: floaty 6s ease-in-out infinite; }
+
+  /* Hairline divider */
+  .divider {
+    @apply border-t;
+    border-color: rgba(var(--border));
+  }
+
+  /* Ring utility that respects theme token */
+  .ring-theme { box-shadow: 0 0 0 3px rgba(var(--ring), .35); }
+}
+
+/* ---- Scrollbar (webkit) ---- */
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(99,102,241,.7), rgba(59,130,246,.7));
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* ---- Optional: page header hero gradient helper ---- */
+.hero-gradient {
+  background: radial-gradient(1000px 400px at 50% -10%, rgba(99,102,241,.18), transparent 60%),
+              radial-gradient(800px 300px at 80% 0%, rgba(236,72,153,.12), transparent 60%),
+              linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(2,6,23,.04) 100%);
 }
