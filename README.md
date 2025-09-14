@@ -59,7 +59,7 @@ A comprehensive full-stack authentication demo showcasing Spring Boot 3.x with S
 3. **Quick Start Commands**
    ```bash
    # Setup database (PostgreSQL must be installed)
-   sudo -u postgres psql -c "ALTER USER postgres PASSWORD '0000';"
+   sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'your_password';"
    sudo -u postgres createdb auth_demo
    
    # Start backend (in one terminal)
